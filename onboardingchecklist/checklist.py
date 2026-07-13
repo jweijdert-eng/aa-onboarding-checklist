@@ -89,18 +89,19 @@ def checklist(user):
         jumps = clones.get("jump_clones") or []
 
         if cfg.require_home_clone:
-            configured = bool(cfg.staging_location_id or cfg.staging_system_id)
-            done = configured and _home_at_staging(home, cfg)
-            staging_label = cfg.staging_name or (
-                f"systeem #{cfg.staging_system_id}" if cfg.staging_system_id else
-                (f"locatie #{cfg.staging_location_id}" if cfg.staging_location_id else None))
+            stagings = list(cfg.staging_locations.all())
+            configured = bool(stagings)
+            home_lid = home.get("location_id")
+            done = configured and any(home_lid == s.location_id for s in stagings)
+            subs = [{"name": (s.name or f"#{s.location_id}"),
+                     "done": home_lid == s.location_id, "note": "Alliance requirement"}
+                    for s in stagings]
             steps.append({
                 "name": "Set death clone to staging",
-                "desc": "Zet je home/death-clone op de staging-locatie.",
+                "desc": "Zet je home/death-clone op één van de staging-locaties.",
                 "auto": configured, "done": done,
                 "note": ("" if linked else "clone-toegang nodig — zie de stap hierboven"),
-                "sub": ([{"name": staging_label, "done": done, "note": "Alliance requirement"}]
-                        if staging_label else []),
+                "sub": subs,
             })
 
         if cfg.require_jump_clones:
@@ -113,37 +114,3 @@ def checklist(user):
             })
 
     return _finish(steps)
-
-
-def _home_at_staging(home, cfg):
-    """Home-clone op de staging-locatie? (exacte id, of systeem voor NPC-stations)."""
-    loc_id = home.get("location_id")
-    if not loc_id:
-        return False
-    if cfg.staging_location_id and loc_id == cfg.staging_location_id:
-        return True
-    if cfg.staging_system_id:
-        return _location_system(loc_id, home.get("location_type")) == cfg.staging_system_id
-    return False
-
-
-def _location_system(location_id, location_type):
-    """Station/structure-id → solar_system_id (publiek voor stations)."""
-    from django.core.cache import cache
-    import requests
-    key = f"obc_locsys_{location_id}"
-    cached = cache.get(key)
-    if cached is not None:
-        return cached or None
-    system_id = None
-    try:
-        if location_type == "station" or (60_000_000 <= location_id < 64_000_000):
-            r = requests.get(
-                f"https://esi.evetech.net/latest/universe/stations/{location_id}/?datasource=tranquility",
-                headers={"User-Agent": "aa-onboarding-checklist"}, timeout=8)
-            if r.ok:
-                system_id = r.json().get("system_id")
-    except Exception:  # noqa: BLE001
-        pass
-    cache.set(key, system_id or 0, 7 * 86400)
-    return system_id
