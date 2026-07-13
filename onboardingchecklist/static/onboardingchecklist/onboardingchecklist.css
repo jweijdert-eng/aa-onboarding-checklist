@@ -1,0 +1,63 @@
+/* Onboarding Checklist — dashboard-widget (EVE-dark, gescoped op .obc). */
+
+.obc { --obc-border: #1c1c35; --obc-dim: #8a90b0; --obc-blue: #00b4d8;
+       --obc-green: #3ecf6e; --obc-red: #e05555; --obc-gold: #f0c040; }
+
+.obc .obc-card {
+    background: linear-gradient(160deg, rgba(15, 15, 34, .95), rgba(8, 8, 20, .97));
+    border: 1px solid var(--obc-border);
+    border-radius: 10px;
+    box-shadow: 0 6px 26px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .04);
+    color: #e1e4f0;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.obc .obc-title {
+    color: #f0a020; font-weight: 800; letter-spacing: .12em; font-size: .95rem;
+    padding-bottom: .5rem; margin-bottom: .8rem; border-bottom: 2px solid rgba(240, 160, 32, .55);
+}
+
+.obc .obc-bar {
+    position: relative; height: 22px; border-radius: 20px;
+    background: rgba(255, 255, 255, .06); border: 1px solid var(--obc-border);
+    overflow: hidden; margin-bottom: 1rem;
+}
+.obc .obc-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #f0a020, #f0c040); transition: width .4s ease; }
+.obc .obc-bar-label {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: .74rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+}
+
+.obc .obc-step { display: flex; gap: .8rem; padding: .7rem 0; border-top: 1px solid rgba(255, 255, 255, .05); }
+.obc .obc-step:first-child { border-top: none; }
+.obc .obc-ico {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .9rem;
+    background: rgba(255, 255, 255, .06); color: var(--obc-dim); border: 1px solid var(--obc-border);
+}
+.obc .obc-step.is-done .obc-ico { background: var(--obc-green); color: #04240f; border-color: var(--obc-green); }
+.obc .obc-name { font-weight: 700; color: #fff; }
+.obc .obc-step.is-done .obc-name { color: var(--obc-dim); text-decoration: line-through; }
+.obc .obc-auto {
+    font-size: .58rem; font-weight: 700; letter-spacing: .05em; vertical-align: 1px;
+    padding: .05rem .35rem; border-radius: 4px;
+    color: var(--obc-blue); background: rgba(0, 180, 216, .14); border: 1px solid rgba(0, 180, 216, .35);
+}
+.obc .obc-desc { font-size: .8rem; color: var(--obc-dim); margin-top: .1rem; }
+.obc .obc-note { color: #79a6d2; }
+
+.obc .obc-sub {
+    display: flex; align-items: center; gap: .5rem; margin-top: .45rem;
+    padding: .35rem .6rem; border-radius: 6px; font-size: .8rem;
+    background: rgba(255, 255, 255, .03); border: 1px solid var(--obc-border);
+}
+.obc .obc-sub-ico {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 800;
+}
+.obc .obc-sub.ok .obc-sub-ico { background: var(--obc-green); color: #04240f; }
+.obc .obc-sub.bad .obc-sub-ico { background: var(--obc-red); color: #2a0808; }
+.obc .obc-sub-name { font-weight: 700; color: #fff; }
+.obc .obc-sub-note { color: var(--obc-gold); font-size: .72rem; }

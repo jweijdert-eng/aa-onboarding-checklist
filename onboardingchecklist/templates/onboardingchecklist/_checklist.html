@@ -1,0 +1,28 @@
+{% load i18n %}
+{% if onboarding %}
+<div class="obc-card">
+    <div class="obc-title">{% translate "ONBOARDING CHECKLIST" %}</div>
+    <div class="obc-bar">
+        <div class="obc-bar-fill" style="width:{% widthratio onboarding.done onboarding.total 100 %}%"></div>
+        <span class="obc-bar-label">{{ onboarding.done }} / {{ onboarding.total }} ({{ onboarding.pct }}%)</span>
+    </div>
+    <div class="obc-steps">
+        {% for s in onboarding.steps %}
+            <div class="obc-step {% if s.done %}is-done{% endif %}">
+                <span class="obc-ico">{% if s.done %}&#10003;{% else %}{{ forloop.counter }}{% endif %}</span>
+                <div class="obc-body">
+                    <div class="obc-name">{{ s.name }}{% if s.auto %} <span class="obc-auto">AUTO</span>{% endif %}</div>
+                    <div class="obc-desc">{{ s.desc }}{% if s.note %} <span class="obc-note">&middot; {{ s.note }}</span>{% endif %}</div>
+                    {% for sub in s.sub %}
+                        <div class="obc-sub {% if sub.done %}ok{% else %}bad{% endif %}">
+                            <span class="obc-sub-ico">{% if sub.done %}&#10003;{% else %}&#10007;{% endif %}</span>
+                            <span class="obc-sub-name">{{ sub.name }}</span>
+                            {% if sub.note %}<span class="obc-sub-note">{{ sub.note }}</span>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
