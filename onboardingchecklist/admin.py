@@ -18,9 +18,13 @@ def _location_choices(include_ids=()):
     for lid, name, cnt in cands:
         choices.append((str(lid), f"{name} ({cnt})"))
         seen.add(str(lid))
+    icons = {kl.location_id: kl.icon for kl in KnownLocation.objects.all()}
+    choices = [(v, (f"{icons[int(v)]} {lab}".strip() if v and int(v) in icons and icons[int(v)] else lab))
+               for v, lab in choices]
     for kl in KnownLocation.objects.all():
         if str(kl.location_id) not in seen:
-            choices.append((str(kl.location_id), kl.name or f"Locatie {kl.location_id}"))
+            lab = kl.name or f"Locatie {kl.location_id}"
+            choices.append((str(kl.location_id), f"{kl.icon} {lab}".strip() if kl.icon else lab))
             seen.add(str(kl.location_id))
     for lid in include_ids:
         if lid and str(lid) not in seen:
@@ -31,9 +35,9 @@ def _location_choices(include_ids=()):
 
 @admin.register(KnownLocation)
 class KnownLocationAdmin(admin.ModelAdmin):
-    list_display = ("name", "location_id")
+    list_display = ("icon", "name", "location_id")
     search_fields = ("name", "location_id")
-    fields = ("location_id", "name")
+    fields = ("location_id", "name", "icon")
 
     def save_model(self, request, obj, form, change):
         if obj.location_id and not obj.name:

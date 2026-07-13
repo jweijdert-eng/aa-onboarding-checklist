@@ -107,6 +107,16 @@ def location_candidates(force=False):
     return out
 
 
+def location_icon(location_id):
+    """Emoji-icoon voor een locatie uit de KnownLocation-lijst (of '')."""
+    try:
+        from .models import KnownLocation
+        kl = KnownLocation.objects.filter(location_id=location_id).first()
+        return (kl.icon if kl else "") or ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def location_name(location_id):
     # 1) handmatige lijst (KnownLocation) — heeft expliciete namen
     try:

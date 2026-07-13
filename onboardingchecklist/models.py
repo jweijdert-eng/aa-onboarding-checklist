@@ -90,6 +90,10 @@ class KnownLocation(models.Model):
         max_length=200, blank=True, default="", verbose_name=_("Naam"),
         help_text=_("Optioneel — wordt automatisch opgezocht waar mogelijk, anders zelf invullen."),
     )
+    icon = models.CharField(
+        max_length=8, blank=True, default="", verbose_name=_("Icoon (emoji)"),
+        help_text=_("Optioneel emoji vóór de naam, bv. ⚔️ (war), 🏰 (staging), 🏠 (home), ⭐."),
+    )
 
     class Meta:
         default_permissions = ()

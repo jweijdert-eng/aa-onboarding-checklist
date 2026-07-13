@@ -30,11 +30,11 @@ def _teamspeak_linked(user):
 
 
 def _loc_label(loc):
-    """Weergavenaam voor een staging/jump-clone-locatie (met fallback op de lijst)."""
-    if loc.name:
-        return loc.name
-    from .resolve import location_name
-    return location_name(loc.location_id) or f"#{loc.location_id}"
+    """Weergavenaam (met icoon ervoor) voor een staging/jump-clone-locatie."""
+    from .resolve import location_icon, location_name
+    name = loc.name or location_name(loc.location_id) or f"#{loc.location_id}"
+    icon = location_icon(loc.location_id)
+    return f"{icon} {name}" if icon else name
 
 
 def _finish(steps):
