@@ -11,6 +11,8 @@ import logging
 
 import requests
 
+from django.core.cache import cache
+
 from .esi import CLONES_SCOPE, get_clones
 
 logger = logging.getLogger(__name__)
@@ -37,18 +39,77 @@ def _resolve_system(name):
 
 
 def _structure_name(location_id, character_id):
+    key = f"obc_structname_{location_id}"
+    cached = cache.get(key)
+    if cached is not None:
+        return cached or None
     from esi.models import Token
     t = Token.objects.filter(character_id=character_id, scopes__name=STRUCT_SCOPE).first()
-    if not t:
-        return None
+    name = None
+    if t:
+        try:
+            r = requests.get(f"{_ESI}/universe/structures/{location_id}/?datasource=tranquility",
+                             headers={**_UA, "Authorization": f"Bearer {t.valid_access_token()}"},
+                             timeout=8)
+            if r.ok:
+                name = r.json().get("name")
+        except Exception:  # noqa: BLE001
+            pass
+    if name:
+        cache.set(key, name, 7 * 86400)
+    return name
+
+
+def _station_name(location_id):
+    key = f"obc_statname_{location_id}"
+    cached = cache.get(key)
+    if cached is not None:
+        return cached or None
+    name = None
     try:
-        r = requests.get(f"{_ESI}/universe/structures/{location_id}/?datasource=tranquility",
-                         headers={**_UA, "Authorization": f"Bearer {t.valid_access_token()}"},
-                         timeout=8)
+        r = requests.get(f"{_ESI}/universe/stations/{location_id}/?datasource=tranquility",
+                         headers=_UA, timeout=8)
         if r.ok:
-            return r.json().get("name")
+            name = r.json().get("name")
     except Exception:  # noqa: BLE001
         pass
+    cache.set(key, name or "", 7 * 86400)
+    return name
+
+
+def location_candidates(force=False):
+    """[(location_id, naam, aantal)] van locaties waar members clones hebben,
+    gesorteerd op frequentie (meest gebruikte = alliance-staging bovenaan)."""
+    key = "obc_location_candidates"
+    if not force:
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
+
+    from esi.models import Token
+    char_ids = list(Token.objects.filter(scopes__name=CLONES_SCOPE)
+                    .values_list("character_id", flat=True).distinct())[:500]
+    counts, a_char = {}, {}
+    for cid in char_ids:
+        cl = get_clones(cid) or {}
+        for loc in [cl.get("home_location")] + (cl.get("jump_clones") or []):
+            lid = (loc or {}).get("location_id")
+            if lid:
+                counts[lid] = counts.get(lid, 0) + 1
+                a_char.setdefault(lid, cid)
+
+    out = []
+    for lid, cnt in sorted(counts.items(), key=lambda x: x[1], reverse=True):
+        name = _structure_name(lid, a_char[lid]) if lid > 1_000_000_000_000 else _station_name(lid)
+        out.append((lid, name or f"Locatie {lid}", cnt))
+    cache.set(key, out, 3600)
+    return out
+
+
+def location_name(location_id):
+    for lid, name, _cnt in location_candidates():
+        if lid == location_id:
+            return name
     return None
 
 
