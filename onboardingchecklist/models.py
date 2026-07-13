@@ -97,3 +97,21 @@ class StagingLocation(models.Model):
 
     def __str__(self) -> str:
         return self.name or f"#{self.location_id}"
+
+
+class JumpCloneLocation(models.Model):
+    """Eén vereiste jump-clone-locatie (station/structure). Meerdere mogelijk."""
+
+    config = models.ForeignKey(
+        Config, on_delete=models.CASCADE, related_name="jump_clone_locations",
+    )
+    location_id = models.BigIntegerField(verbose_name=_("Station/structure id"))
+    name = models.CharField(max_length=200, blank=True, default="")
+
+    class Meta:
+        default_permissions = ()
+        verbose_name = _("jump-clone-locatie")
+        verbose_name_plural = _("jump-clone-locaties")
+
+    def __str__(self) -> str:
+        return self.name or f"#{self.location_id}"

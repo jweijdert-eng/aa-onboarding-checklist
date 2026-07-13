@@ -106,11 +106,24 @@ def checklist(user):
 
         if cfg.require_jump_clones:
             count = len(jumps)
-            steps.append({
-                "name": "Configure jump clone placements",
-                "desc": f"Zorg voor minstens {cfg.min_jump_clones or 1} jump clone(s).",
-                "auto": True, "done": count >= (cfg.min_jump_clones or 1),
-                "note": (f"{count} jump clone(s)" if linked else ""), "sub": [],
-            })
+            jump_lids = {(j or {}).get("location_id") for j in jumps}
+            required = list(cfg.jump_clone_locations.all())
+            if required:
+                subs = [{"name": (r.name or f"#{r.location_id}"),
+                         "done": r.location_id in jump_lids, "note": "Alliance requirement"}
+                        for r in required]
+                steps.append({
+                    "name": "Configure jump clone placements",
+                    "desc": "Zorg voor een jump clone op elke vereiste locatie.",
+                    "auto": True, "done": all(s["done"] for s in subs),
+                    "note": (f"{count} jump clone(s)" if linked else ""), "sub": subs,
+                })
+            else:
+                steps.append({
+                    "name": "Configure jump clone placements",
+                    "desc": f"Zorg voor minstens {cfg.min_jump_clones or 1} jump clone(s).",
+                    "auto": True, "done": count >= (cfg.min_jump_clones or 1),
+                    "note": (f"{count} jump clone(s)" if linked else ""), "sub": [],
+                })
 
     return _finish(steps)

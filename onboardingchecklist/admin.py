@@ -2,7 +2,7 @@
 
 from django.contrib import admin, messages
 
-from .models import Config, StagingLocation
+from .models import Config, JumpCloneLocation, StagingLocation
 
 
 def _location_choices(include_ids=()):
@@ -25,15 +25,16 @@ def _location_choices(include_ids=()):
     return choices
 
 
-class StagingLocationInline(admin.TabularInline):
-    model = StagingLocation
+class _LocationInline(admin.TabularInline):
+    """Gedeelde inline met een locatie-dropdown."""
+
     extra = 1
     fields = ("location_id",)
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == "location_id":
             from django import forms
-            existing = list(StagingLocation.objects.values_list("location_id", flat=True))
+            existing = list(self.model.objects.values_list("location_id", flat=True))
             return forms.TypedChoiceField(
                 choices=_location_choices(existing), coerce=int, required=True,
                 label=db_field.verbose_name,
@@ -41,9 +42,17 @@ class StagingLocationInline(admin.TabularInline):
         return super().formfield_for_dbfield(db_field, request, **kwargs)
 
 
+class StagingLocationInline(_LocationInline):
+    model = StagingLocation
+
+
+class JumpCloneLocationInline(_LocationInline):
+    model = JumpCloneLocation
+
+
 @admin.register(Config)
 class ConfigAdmin(admin.ModelAdmin):
-    inlines = (StagingLocationInline,)
+    inlines = (StagingLocationInline, JumpCloneLocationInline)
     fieldsets = (
         ("Weergave", {
             "fields": ("hide_when_complete",),
@@ -69,7 +78,7 @@ class ConfigAdmin(admin.ModelAdmin):
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
         for obj in instances:
-            if isinstance(obj, StagingLocation) and obj.location_id and not obj.name:
+            if isinstance(obj, (StagingLocation, JumpCloneLocation)) and obj.location_id and not obj.name:
                 from .resolve import location_name
                 obj.name = location_name(obj.location_id) or ""
             obj.save()
