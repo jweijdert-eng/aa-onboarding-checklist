@@ -94,7 +94,8 @@ def location_candidates(force=False):
         cl = get_clones(cid) or {}
         for loc in [cl.get("home_location")] + (cl.get("jump_clones") or []):
             lid = (loc or {}).get("location_id")
-            if lid:
+            # Alleen player-structures (citadels); NPC-stations (60xxxxxx) zijn ruis.
+            if lid and lid > 1_000_000_000_000:
                 counts[lid] = counts.get(lid, 0) + 1
                 a_char.setdefault(lid, cid)
 
