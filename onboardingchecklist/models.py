@@ -27,6 +27,10 @@ class Config(models.Model):
         default=True, verbose_name=_("Stap: Discord koppelen"),
         help_text=_("Alleen zichtbaar als de Discord-service is geïnstalleerd."),
     )
+    require_teamspeak = models.BooleanField(
+        default=True, verbose_name=_("Stap: TeamSpeak koppelen"),
+        help_text=_("Alleen zichtbaar als de TeamSpeak3-service is geïnstalleerd."),
+    )
     require_home_clone = models.BooleanField(
         default=True, verbose_name=_("Stap: home/death-clone op staging"),
     )

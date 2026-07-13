@@ -9,11 +9,21 @@ from .esi import clone_token, get_clones
 from .models import Config
 
 
-def _discord_model():
+def _discord_linked(user):
+    """True/False of de gebruiker Discord gekoppeld heeft; None = service niet beschikbaar."""
     try:
         from allianceauth.services.modules.discord.models import DiscordUser
-        return DiscordUser
-    except Exception:  # noqa: BLE001 — Discord-service niet geïnstalleerd
+        return DiscordUser.objects.filter(user=user).exists()
+    except Exception:  # noqa: BLE001 — service niet geïnstalleerd/ingericht
+        return None
+
+
+def _teamspeak_linked(user):
+    """True/False of de gebruiker TeamSpeak gekoppeld heeft; None = service niet beschikbaar."""
+    try:
+        from allianceauth.services.modules.teamspeak3.models import Teamspeak3User
+        return Teamspeak3User.objects.filter(user=user).exists()
+    except Exception:  # noqa: BLE001 — service niet geïnstalleerd/ingericht
         return None
 
 
@@ -51,14 +61,23 @@ def checklist(user):
             "note": "" if linked else "koppel via CharLink",
         })
 
-    discord = _discord_model()
-    if cfg.require_discord and discord is not None:
-        steps.append({
-            "name": "Link Discord account",
-            "desc": "Koppel je Discord-account voor comms-toegang.",
-            "auto": True, "done": discord.objects.filter(user=user).exists(),
-            "sub": [], "note": "",
-        })
+    if cfg.require_discord:
+        linked = _discord_linked(user)
+        if linked is not None:
+            steps.append({
+                "name": "Link Discord account",
+                "desc": "Koppel je Discord-account voor comms-toegang.",
+                "auto": True, "done": linked, "sub": [], "note": "",
+            })
+
+    if cfg.require_teamspeak:
+        linked = _teamspeak_linked(user)
+        if linked is not None:
+            steps.append({
+                "name": "Link TeamSpeak",
+                "desc": "Koppel je TeamSpeak-account voor voice-comms.",
+                "auto": True, "done": linked, "sub": [], "note": "",
+            })
 
     if cfg.require_home_clone or cfg.require_jump_clones:
         clones = get_clones(cid) or {}

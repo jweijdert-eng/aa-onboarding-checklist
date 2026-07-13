@@ -9,7 +9,7 @@ from .models import Config
 class ConfigAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Actieve stappen", {
-            "fields": ("require_scopes", "require_discord",
+            "fields": ("require_scopes", "require_discord", "require_teamspeak",
                        "require_home_clone", "require_jump_clones"),
         }),
         ("Staging-locatie", {
