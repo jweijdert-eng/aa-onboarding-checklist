@@ -91,8 +91,10 @@ class KnownLocation(models.Model):
         help_text=_("Optioneel — wordt automatisch opgezocht waar mogelijk, anders zelf invullen."),
     )
     icon = models.CharField(
-        max_length=8, blank=True, default="", verbose_name=_("Icoon (emoji)"),
-        help_text=_("Optioneel emoji vóór de naam, bv. ⚔️ (war), 🏰 (staging), 🏠 (home), ⭐."),
+        max_length=300, blank=True, default="", verbose_name=_("Icoon"),
+        help_text=_("Vóór de naam. Kan zijn: een trefwoord voor een ingebouwd beeld "
+                    "(war = kruis-zwaarden, staging, home, star), een volledige image-URL "
+                    "(https://…/plaatje.png), of een emoji (⚔️)."),
     )
 
     class Meta:

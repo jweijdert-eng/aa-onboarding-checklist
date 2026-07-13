@@ -107,14 +107,37 @@ def location_candidates(force=False):
     return out
 
 
+BUNDLED_ICONS = {"war", "staging", "home", "star"}
+
+
 def location_icon(location_id):
-    """Emoji-icoon voor een locatie uit de KnownLocation-lijst (of '')."""
+    """Ruwe icon-waarde voor een locatie uit de KnownLocation-lijst (of '')."""
     try:
         from .models import KnownLocation
         kl = KnownLocation.objects.filter(location_id=location_id).first()
         return (kl.icon if kl else "") or ""
     except Exception:  # noqa: BLE001
         return ""
+
+
+def icon_image_url(icon):
+    """Een image-URL voor de icon-waarde, of None als het een emoji/tekst is.
+    - 'war'/'staging'/... → ingebouwd SVG-icoon (static)
+    - http(s)://...       → die URL
+    - anders (emoji)      → None
+    """
+    if not icon:
+        return None
+    icon = icon.strip()
+    if icon.startswith(("http://", "https://")):
+        return icon
+    if icon.lower() in BUNDLED_ICONS:
+        from django.templatetags.static import static
+        try:
+            return static(f"onboardingchecklist/icons/{icon.lower()}.svg")
+        except Exception:  # noqa: BLE001 — nog niet gecollect
+            return None
+    return None
 
 
 def location_name(location_id):

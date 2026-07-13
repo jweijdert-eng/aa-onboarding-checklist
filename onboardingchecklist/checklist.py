@@ -29,12 +29,16 @@ def _teamspeak_linked(user):
         return None
 
 
-def _loc_label(loc):
-    """Weergavenaam (met icoon ervoor) voor een staging/jump-clone-locatie."""
-    from .resolve import location_icon, location_name
+def _loc_sub(loc, done):
+    """Sub-regel voor een staging/jump-clone-locatie: naam + icoon (beeld óf emoji)."""
+    from .resolve import icon_image_url, location_icon, location_name
     name = loc.name or location_name(loc.location_id) or f"#{loc.location_id}"
-    icon = location_icon(loc.location_id)
-    return f"{icon} {name}" if icon else name
+    raw = location_icon(loc.location_id)
+    img = icon_image_url(raw)
+    return {
+        "name": name, "done": done, "note": "Alliance requirement",
+        "icon_url": img, "icon_text": "" if img else raw,
+    }
 
 
 def _finish(steps):
@@ -101,9 +105,7 @@ def checklist(user):
             configured = bool(stagings)
             home_lid = home.get("location_id")
             done = configured and any(home_lid == s.location_id for s in stagings)
-            subs = [{"name": _loc_label(s),
-                     "done": home_lid == s.location_id, "note": "Alliance requirement"}
-                    for s in stagings]
+            subs = [_loc_sub(s, home_lid == s.location_id) for s in stagings]
             steps.append({
                 "name": "Set death clone to staging",
                 "desc": "Zet je home/death-clone op één van de staging-locaties.",
@@ -117,9 +119,7 @@ def checklist(user):
             jump_lids = {(j or {}).get("location_id") for j in jumps}
             required = list(cfg.jump_clone_locations.all())
             if required:
-                subs = [{"name": _loc_label(r),
-                         "done": r.location_id in jump_lids, "note": "Alliance requirement"}
-                        for r in required]
+                subs = [_loc_sub(r, r.location_id in jump_lids) for r in required]
                 steps.append({
                     "name": "Configure jump clone placements",
                     "desc": "Zorg voor een jump clone op elke vereiste locatie.",

@@ -72,4 +72,6 @@
 .obc .obc-sub.ok .obc-sub-ico { background: var(--obc-green); color: #04240f; }
 .obc .obc-sub.bad .obc-sub-ico { background: var(--obc-red); color: #2a0808; }
 .obc .obc-sub-name { font-weight: 700; color: #fff; }
+.obc .obc-sub-img { width: 18px; height: 18px; vertical-align: -4px; margin-right: 5px; }
+.obc .obc-sub-emoji { margin-right: 2px; }
 .obc .obc-sub-note { color: var(--obc-gold); font-size: .72rem; }
