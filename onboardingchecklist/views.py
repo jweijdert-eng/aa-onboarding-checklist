@@ -37,8 +37,12 @@ def dashboard_widget(request) -> str:
     if not getattr(request, "user", None) or not request.user.is_authenticated:
         return ""
     ob = checklist(request.user)
-    if not ob.get("steps") or ob.get("complete"):
+    if not ob.get("steps"):
         return ""
+    if ob.get("complete"):
+        from .models import Config
+        if Config.load().hide_when_complete:
+            return ""
     return render_to_string(
         "onboardingchecklist/dashboard.html", {"onboarding": ob}, request=request
     )

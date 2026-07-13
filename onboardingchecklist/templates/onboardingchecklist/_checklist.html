@@ -1,8 +1,8 @@
 {% load i18n %}
 {% if onboarding %}
 <div class="obc-card">
-    <div class="obc-title">{% translate "ONBOARDING CHECKLIST" %}</div>
-    <div class="obc-bar">
+    <div class="obc-title">{% translate "ONBOARDING CHECKLIST" %}{% if onboarding.complete %} <span class="obc-done">&#10003; {% translate "voltooid" %}</span>{% endif %}</div>
+    <div class="obc-bar {% if onboarding.complete %}is-complete{% endif %}">
         <div class="obc-bar-fill" style="width:{% widthratio onboarding.done onboarding.total 100 %}%"></div>
         <span class="obc-bar-label">{{ onboarding.done }} / {{ onboarding.total }} ({{ onboarding.pct }}%)</span>
     </div>

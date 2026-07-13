@@ -8,6 +8,9 @@ from .models import Config
 @admin.register(Config)
 class ConfigAdmin(admin.ModelAdmin):
     fieldsets = (
+        ("Weergave", {
+            "fields": ("hide_when_complete",),
+        }),
         ("Actieve stappen", {
             "fields": ("require_scopes", "require_discord", "require_teamspeak",
                        "require_home_clone", "require_jump_clones"),

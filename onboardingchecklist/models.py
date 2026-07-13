@@ -38,6 +38,12 @@ class Config(models.Model):
         default=True, verbose_name=_("Stap: jump clones aanwezig"),
     )
 
+    hide_when_complete = models.BooleanField(
+        default=False, verbose_name=_("Widget verbergen bij 100% voltooid"),
+        help_text=_("Uit (standaard): de checklist blijft altijd zichtbaar, met een "
+                    "'voltooid'-melding zodra alles klaar is. Aan: verbergt de widget bij 100%."),
+    )
+
     staging_name = models.CharField(
         max_length=200, blank=True, default="", verbose_name=_("Staging (weergavenaam)"),
         help_text=_("Bijv. 'BKG-Q2 - Insidious Prime'."),
