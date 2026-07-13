@@ -1,7 +1,9 @@
-"""Hook into Alliance Auth — dashboard-widget."""
+"""Hook into Alliance Auth — dashboard-widget + urls."""
 
 from allianceauth import hooks
+from allianceauth.services.hooks import UrlHook
 
+from . import urls
 from .views import dashboard_widget
 
 
@@ -15,3 +17,8 @@ class OnboardingDashboardHook(hooks.DashboardItemHook):
 @hooks.register("dashboard_hook")
 def register_dashboard():
     return OnboardingDashboardHook()
+
+
+@hooks.register("url_hook")
+def register_urls():
+    return UrlHook(urls, "onboardingchecklist", r"^onboarding/")

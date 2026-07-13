@@ -12,7 +12,7 @@
                 <span class="obc-ico">{% if s.done %}&#10003;{% else %}{{ forloop.counter }}{% endif %}</span>
                 <div class="obc-body">
                     <div class="obc-name">{{ s.name }}{% if s.auto %} <span class="obc-auto">AUTO</span>{% endif %}</div>
-                    <div class="obc-desc">{{ s.desc }}{% if s.note %} <span class="obc-note">&middot; {{ s.note }}</span>{% endif %}</div>
+                    <div class="obc-desc">{{ s.desc }}{% if s.url %} <a class="obc-link" href="{{ s.url }}">{{ s.url_label|default:"koppel" }} &rarr;</a>{% elif s.note %} <span class="obc-note">&middot; {{ s.note }}</span>{% endif %}</div>
                     {% for sub in s.sub %}
                         <div class="obc-sub {% if sub.done %}ok{% else %}bad{% endif %}">
                             <span class="obc-sub-ico">{% if sub.done %}&#10003;{% else %}&#10007;{% endif %}</span>

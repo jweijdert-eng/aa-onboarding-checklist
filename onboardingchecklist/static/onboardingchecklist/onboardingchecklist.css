@@ -47,6 +47,12 @@
 }
 .obc .obc-desc { font-size: .8rem; color: var(--obc-dim); margin-top: .1rem; }
 .obc .obc-note { color: #79a6d2; }
+.obc .obc-link {
+    display: inline-block; margin-left: .3rem; font-weight: 700; font-size: .78rem;
+    color: #04240f; background: var(--obc-gold); padding: .05rem .5rem; border-radius: 5px;
+    text-decoration: none;
+}
+.obc .obc-link:hover { filter: brightness(1.1); }
 
 .obc .obc-sub {
     display: flex; align-items: center; gap: .5rem; margin-top: .45rem;

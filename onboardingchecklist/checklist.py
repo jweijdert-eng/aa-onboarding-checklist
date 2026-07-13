@@ -5,6 +5,8 @@ Onboarding-checklist — volledig automatische stappen, zelfstandig berekend.
 (main character), django-esi (tokens/clones) en optioneel de Discord-service.
 """
 
+from django.urls import reverse
+
 from .esi import clone_token, get_clones
 from .models import Config
 
@@ -56,9 +58,11 @@ def checklist(user):
     if cfg.require_scopes:
         steps.append({
             "name": "Link character (ESI)",
-            "desc": "Koppel je character zodat we je clones kunnen checken (esi-clones).",
+            "desc": "Verleen clone-toegang (esi-clones) voor je main.",
             "auto": True, "done": linked, "sub": [],
-            "note": "" if linked else "koppel via CharLink",
+            "note": "" if linked else "clone-toegang nog niet verleend",
+            "url": None if linked else reverse("onboardingchecklist:link_esi"),
+            "url_label": "Koppel nu",
         })
 
     if cfg.require_discord:
@@ -94,7 +98,7 @@ def checklist(user):
                 "name": "Set death clone to staging",
                 "desc": "Zet je home/death-clone op de staging-locatie.",
                 "auto": configured, "done": done,
-                "note": ("" if linked else "koppel eerst je character"),
+                "note": ("" if linked else "clone-toegang nodig — zie de stap hierboven"),
                 "sub": ([{"name": staging_label, "done": done, "note": "Alliance requirement"}]
                         if staging_label else []),
             })
