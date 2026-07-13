@@ -16,7 +16,7 @@
                     {% for sub in s.sub %}
                         <div class="obc-sub {% if sub.done %}ok{% else %}bad{% endif %}">
                             <span class="obc-sub-ico">{% if sub.done %}&#10003;{% else %}&#10007;{% endif %}</span>
-                            <span class="obc-sub-name">{% if sub.icon_url %}<img class="obc-sub-img" src="{{ sub.icon_url }}" alt="">{% elif sub.icon_text %}<span class="obc-sub-emoji">{{ sub.icon_text }}</span> {% endif %}{{ sub.name }}</span>
+                            <span class="obc-sub-name">{% if sub.icon_url %}<img class="obc-sub-img" style="width:{{ sub.icon_size }}px;height:{{ sub.icon_size }}px" src="{{ sub.icon_url }}" alt="">{% elif sub.icon_text %}<span class="obc-sub-emoji" style="font-size:{{ sub.icon_size }}px">{{ sub.icon_text }}</span> {% endif %}{{ sub.name }}</span>
                             {% if sub.note %}<span class="obc-sub-note">{{ sub.note }}</span>{% endif %}
                         </div>
                     {% endfor %}

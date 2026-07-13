@@ -115,6 +115,13 @@ class StagingLocation(models.Model):
     )
     location_id = models.BigIntegerField(verbose_name=_("Station/structure id"))
     name = models.CharField(max_length=200, blank=True, default="")
+    icon = models.CharField(
+        max_length=300, blank=True, default="", verbose_name=_("Icoon"),
+        help_text=_("Los per regel: trefwoord (war/staging/home/star), image-URL of emoji."),
+    )
+    icon_size = models.PositiveSmallIntegerField(
+        default=26, verbose_name=_("Icoon-grootte (px)"),
+    )
 
     class Meta:
         default_permissions = ()
@@ -133,6 +140,13 @@ class JumpCloneLocation(models.Model):
     )
     location_id = models.BigIntegerField(verbose_name=_("Station/structure id"))
     name = models.CharField(max_length=200, blank=True, default="")
+    icon = models.CharField(
+        max_length=300, blank=True, default="", verbose_name=_("Icoon"),
+        help_text=_("Los per regel: trefwoord (war/staging/home/star), image-URL of emoji."),
+    )
+    icon_size = models.PositiveSmallIntegerField(
+        default=26, verbose_name=_("Icoon-grootte (px)"),
+    )
 
     class Meta:
         default_permissions = ()

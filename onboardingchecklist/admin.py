@@ -76,7 +76,7 @@ class _LocationInline(admin.TabularInline):
     """Gedeelde inline met een locatie-dropdown."""
 
     extra = 1
-    fields = ("location_id",)
+    fields = ("location_id", "icon", "icon_size")
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == "location_id":

@@ -33,11 +33,13 @@ def _loc_sub(loc, done):
     """Sub-regel voor een staging/jump-clone-locatie: naam + icoon (beeld óf emoji)."""
     from .resolve import icon_image_url, location_icon, location_name
     name = loc.name or location_name(loc.location_id) or f"#{loc.location_id}"
-    raw = location_icon(loc.location_id)
+    # Icoon: eerst het regel-eigen icoon, anders dat van de KnownLocation-lijst
+    raw = getattr(loc, "icon", "") or location_icon(loc.location_id)
     img = icon_image_url(raw)
     return {
         "name": name, "done": done, "note": "Alliance requirement",
         "icon_url": img, "icon_text": "" if img else raw,
+        "icon_size": getattr(loc, "icon_size", 26) or 26,
     }
 
 
