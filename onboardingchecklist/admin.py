@@ -2,12 +2,12 @@
 
 from django.contrib import admin, messages
 
-from .models import Config, JumpCloneLocation, StagingLocation
+from .models import Config, JumpCloneLocation, KnownLocation, StagingLocation
 
 
 def _location_choices(include_ids=()):
-    """Dropdown-keuzes: bekende member-clone-locaties + eventueel extra ids."""
-    from django import forms  # noqa: F401
+    """Dropdown-keuzes: automatisch gevonden member-clone-locaties + de handmatige
+    lijst (KnownLocation) + eventueel al-geselecteerde ids."""
     try:
         from .resolve import location_candidates
         cands = location_candidates()
@@ -18,11 +18,54 @@ def _location_choices(include_ids=()):
     for lid, name, cnt in cands:
         choices.append((str(lid), f"{name} ({cnt})"))
         seen.add(str(lid))
+    for kl in KnownLocation.objects.all():
+        if str(kl.location_id) not in seen:
+            choices.append((str(kl.location_id), kl.name or f"Locatie {kl.location_id}"))
+            seen.add(str(kl.location_id))
     for lid in include_ids:
         if lid and str(lid) not in seen:
             choices.append((str(lid), f"Locatie {lid}"))
             seen.add(str(lid))
     return choices
+
+
+@admin.register(KnownLocation)
+class KnownLocationAdmin(admin.ModelAdmin):
+    list_display = ("name", "location_id")
+    search_fields = ("name", "location_id")
+    fields = ("location_id", "name")
+
+    def save_model(self, request, obj, form, change):
+        if obj.location_id and not obj.name:
+            obj.name = _resolve_name(obj.location_id) or ""
+        super().save_model(request, obj, form, change)
+        from django.core.cache import cache
+        cache.delete("obc_location_candidates")  # dropdowns verversen
+
+    def _can(self, request):
+        return request.user.is_superuser or request.user.has_perm("onboardingchecklist.manage_settings")
+
+    def has_view_permission(self, request, obj=None):
+        return self._can(request)
+
+    def has_add_permission(self, request):
+        return self._can(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self._can(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self._can(request)
+
+
+def _resolve_name(location_id):
+    """Naam voor een id: eerst uit de member-clone-lijst, anders (NPC-station) publiek."""
+    try:
+        from .resolve import location_name, _station_name
+        return location_name(location_id) or (
+            _station_name(location_id) if 60_000_000 <= location_id < 64_000_000 else None)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 class _LocationInline(admin.TabularInline):

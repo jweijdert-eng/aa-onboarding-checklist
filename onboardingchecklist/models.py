@@ -81,6 +81,26 @@ class Config(models.Model):
         return obj
 
 
+class KnownLocation(models.Model):
+    """Handmatig beheerde locatie die in de dropdowns verschijnt (naast de
+    automatisch uit member-clones gevonden locaties)."""
+
+    location_id = models.BigIntegerField(unique=True, verbose_name=_("Station/structure id"))
+    name = models.CharField(
+        max_length=200, blank=True, default="", verbose_name=_("Naam"),
+        help_text=_("Optioneel — wordt automatisch opgezocht waar mogelijk, anders zelf invullen."),
+    )
+
+    class Meta:
+        default_permissions = ()
+        ordering = ("name",)
+        verbose_name = _("locatie in de lijst")
+        verbose_name_plural = _("locaties in de lijst")
+
+    def __str__(self) -> str:
+        return self.name or f"#{self.location_id}"
+
+
 class StagingLocation(models.Model):
     """Eén staging-locatie (station/structure). Meerdere mogelijk."""
 
