@@ -29,6 +29,14 @@ def _teamspeak_linked(user):
         return None
 
 
+def _loc_label(loc):
+    """Weergavenaam voor een staging/jump-clone-locatie (met fallback op de lijst)."""
+    if loc.name:
+        return loc.name
+    from .resolve import location_name
+    return location_name(loc.location_id) or f"#{loc.location_id}"
+
+
 def _finish(steps):
     total = len(steps)
     done = sum(1 for s in steps if s["done"])
@@ -93,7 +101,7 @@ def checklist(user):
             configured = bool(stagings)
             home_lid = home.get("location_id")
             done = configured and any(home_lid == s.location_id for s in stagings)
-            subs = [{"name": (s.name or f"#{s.location_id}"),
+            subs = [{"name": _loc_label(s),
                      "done": home_lid == s.location_id, "note": "Alliance requirement"}
                     for s in stagings]
             steps.append({
@@ -109,7 +117,7 @@ def checklist(user):
             jump_lids = {(j or {}).get("location_id") for j in jumps}
             required = list(cfg.jump_clone_locations.all())
             if required:
-                subs = [{"name": (r.name or f"#{r.location_id}"),
+                subs = [{"name": _loc_label(r),
                          "done": r.location_id in jump_lids, "note": "Alliance requirement"}
                         for r in required]
                 steps.append({

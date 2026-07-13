@@ -107,9 +107,21 @@ def location_candidates(force=False):
 
 
 def location_name(location_id):
+    # 1) handmatige lijst (KnownLocation) — heeft expliciete namen
+    try:
+        from .models import KnownLocation
+        kl = KnownLocation.objects.filter(location_id=location_id).first()
+        if kl and kl.name:
+            return kl.name
+    except Exception:  # noqa: BLE001
+        pass
+    # 2) automatisch uit member-clones
     for lid, name, _cnt in location_candidates():
         if lid == location_id:
             return name
+    # 3) NPC-station (publiek)
+    if 60_000_000 <= location_id < 64_000_000:
+        return _station_name(location_id)
     return None
 
 
