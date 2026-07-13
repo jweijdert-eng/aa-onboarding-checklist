@@ -45,8 +45,10 @@ class Config(models.Model):
     )
 
     staging_name = models.CharField(
-        max_length=200, blank=True, default="", verbose_name=_("Staging (weergavenaam)"),
-        help_text=_("Bijv. 'BKG-Q2 - Insidious Prime'."),
+        max_length=200, blank=True, default="", verbose_name=_("Staging (naam)"),
+        help_text=_("Typ een systeem- of structure-naam en laat de id-velden leeg: bij opslaan "
+                    "wordt het id automatisch opgezocht. Systeem = bv. 'SF-XJS'; structure = bv. "
+                    "'BKG-Q2 - Insidious Prime' (met ' - ')."),
     )
     staging_system_id = models.PositiveIntegerField(
         null=True, blank=True, verbose_name=_("Staging solar system id"),

@@ -1,6 +1,6 @@
 """Admin — Onboarding Checklist instellingen (singleton)."""
 
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from .models import Config
 
@@ -37,3 +37,28 @@ class ConfigAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # Automatisch de staging-naam omzetten naar een id (alleen als er nog geen id is)
+        if obj.staging_name and not obj.staging_location_id and not obj.staging_system_id:
+            from .resolve import resolve_staging
+            res = resolve_staging(obj.staging_name)
+            if res:
+                obj.staging_system_id = res["system_id"]
+                obj.staging_location_id = res["location_id"]
+                if res.get("name"):
+                    obj.staging_name = res["name"]
+                obj.save()
+                kind = "systeem" if res["system_id"] else "structure"
+                self.message_user(
+                    request,
+                    f"Staging automatisch herkend als {kind}: {obj.staging_name} "
+                    f"(id {res['system_id'] or res['location_id']}).",
+                    level=messages.SUCCESS)
+            else:
+                self.message_user(
+                    request,
+                    f"Kon '{obj.staging_name}' niet automatisch vinden — vul het id handmatig in "
+                    f"(structures worden gematcht tegen locaties waar members clones hebben).",
+                    level=messages.WARNING)
