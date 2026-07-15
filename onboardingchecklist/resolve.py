@@ -77,33 +77,53 @@ def _station_name(location_id):
     return name
 
 
+_CANDIDATES_KEY = "obc_location_candidates"
+
+
+def cached_candidates():
+    """Alleen de gecachte locatielijst — berekent NOOIT (blocking) opnieuw.
+    Gebruikt door de admin-dropdown zodat de instellingen altijd snel laden.
+    Leeg tot iemand 'Ververs locatielijst' draait."""
+    return cache.get(_CANDIDATES_KEY) or []
+
+
 def location_candidates(force=False):
     """[(location_id, naam, aantal)] van locaties waar members clones hebben,
-    gesorteerd op frequentie (meest gebruikte = alliance-staging bovenaan)."""
-    key = "obc_location_candidates"
+    gesorteerd op frequentie (meest gebruikte = alliance-staging bovenaan).
+
+    Zwaar (ESI per member + per structure) → parallel, en 24u gecached. Draai dit
+    via de 'Ververs locatielijst'-actie, niet bij elke pagina-load."""
     if not force:
-        cached = cache.get(key)
+        cached = cache.get(_CANDIDATES_KEY)
         if cached is not None:
             return cached
 
+    from concurrent.futures import ThreadPoolExecutor
     from esi.models import Token
     char_ids = list(Token.objects.filter(scopes__name=CLONES_SCOPE)
                     .values_list("character_id", flat=True).distinct())[:500]
-    counts, a_char = {}, {}
-    for cid in char_ids:
-        cl = get_clones(cid) or {}
-        for loc in [cl.get("home_location")] + (cl.get("jump_clones") or []):
-            lid = (loc or {}).get("location_id")
-            # Alleen player-structures (citadels); NPC-stations (60xxxxxx) zijn ruis.
-            if lid and lid > 1_000_000_000_000:
-                counts[lid] = counts.get(lid, 0) + 1
-                a_char.setdefault(lid, cid)
 
-    out = []
-    for lid, cnt in sorted(counts.items(), key=lambda x: x[1], reverse=True):
-        name = _structure_name(lid, a_char[lid]) if lid > 1_000_000_000_000 else _station_name(lid)
-        out.append((lid, name or f"Locatie {lid}", cnt))
-    cache.set(key, out, 3600)
+    # Clones parallel ophalen (elke get_clones = 1 ESI-call, per char gecached)
+    counts, a_char = {}, {}
+    if char_ids:
+        with ThreadPoolExecutor(max_workers=20) as ex:
+            for cid, cl in ex.map(lambda c: (c, get_clones(c) or {}), char_ids):
+                for loc in [cl.get("home_location")] + (cl.get("jump_clones") or []):
+                    lid = (loc or {}).get("location_id")
+                    # Alleen player-structures (citadels); NPC-stations (60xxxxxx) zijn ruis.
+                    if lid and lid > 1_000_000_000_000:
+                        counts[lid] = counts.get(lid, 0) + 1
+                        a_char.setdefault(lid, cid)
+
+    # Structure-namen parallel resolven (elk gecached)
+    names = {}
+    if counts:
+        with ThreadPoolExecutor(max_workers=12) as ex:
+            names = dict(ex.map(lambda lid: (lid, _structure_name(lid, a_char[lid])), counts))
+
+    out = [(lid, names.get(lid) or f"Locatie {lid}", cnt)
+           for lid, cnt in sorted(counts.items(), key=lambda x: x[1], reverse=True)]
+    cache.set(_CANDIDATES_KEY, out, 24 * 3600)
     return out
 
 

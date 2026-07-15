@@ -9,8 +9,8 @@ def _location_choices(include_ids=()):
     """Dropdown-keuzes: automatisch gevonden member-clone-locaties + de handmatige
     lijst (KnownLocation) + eventueel al-geselecteerde ids."""
     try:
-        from .resolve import location_candidates
-        cands = location_candidates()
+        from .resolve import cached_candidates
+        cands = cached_candidates()  # alleen cache — nooit (blocking) berekenen bij pagina-load
     except Exception:  # noqa: BLE001
         cands = []
     choices = [("", "— (kies locatie)")]
