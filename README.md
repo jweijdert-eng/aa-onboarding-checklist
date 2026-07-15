@@ -19,10 +19,15 @@ Staging- en jump-clone-locaties beheer je in de admin: kies uit een dropdown van
 locaties waar leden clones hebben, of beheer een eigen locatie-lijst. Per regel kun je
 een **icoon** (trefwoord zoals `war`, een image-URL of een emoji) en **grootte** instellen.
 
+De **instellingen-pagina laadt direct**: de locatie-dropdown wordt uit de cache gevuld en
+nooit live (blocking) berekend. De zware berekening — alle member-clones ophalen via ESI —
+draait alleen op verzoek via de admin-actie **"Ververs locatielijst"** (parallel) en wordt
+24 uur gecached.
+
 ## Installatie
 
 ```bash
-pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git
+pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.11.1
 ```
 
 ```python
