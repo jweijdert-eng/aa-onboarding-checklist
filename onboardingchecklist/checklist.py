@@ -43,6 +43,44 @@ def _loc_sub(loc, done):
     }
 
 
+def _characters(user, cfg):
+    """De characters die meetellen: de main, en met 'alts meetellen' aan ook de rest.
+
+    Alfabetisch achter de main, zodat de volgorde niet verspringt bij elke
+    dashboard-lading.
+    """
+    main = getattr(getattr(user, "profile", None), "main_character", None)
+    if not main:
+        return []
+    if not cfg.include_alts:
+        return [main]
+    alts = []
+    try:
+        for own in user.character_ownerships.select_related("character").all():
+            char = own.character
+            if char and char.character_id != main.character_id:
+                alts.append(char)
+    except Exception:  # noqa: BLE001 — geen ownerships is gewoon geen alts
+        alts = []
+    alts.sort(key=lambda c: (c.character_name or "").lower())
+    return [main] + alts
+
+
+def _char_sub(char, done, note="", loc=None):
+    """Sub-regel voor één character; het icoon komt van de locatie waar hij staat."""
+    from .resolve import icon_image_url, location_icon
+
+    raw = ""
+    if loc is not None:
+        raw = getattr(loc, "icon", "") or location_icon(loc.location_id)
+    img = icon_image_url(raw) if raw else ""
+    return {
+        "name": char.character_name, "done": done, "note": note,
+        "icon_url": img, "icon_text": "" if img else raw,
+        "icon_size": getattr(loc, "icon_size", 26) or 26 if loc is not None else 26,
+    }
+
+
 def _finish(steps):
     total = len(steps)
     done = sum(1 for s in steps if s["done"])
@@ -67,15 +105,27 @@ def checklist(user):
         return _finish(steps)
 
     cid = main.character_id
-    linked = clone_token(cid) is not None
+    chars = _characters(user, cfg)
+    # Per character of hij clone-toegang heeft. Met alts uit is dit alleen de main.
+    heeft_token = {c.character_id: clone_token(c.character_id) is not None for c in chars}
+    linked = heeft_token.get(cid, False)
+    alles_gekoppeld = all(heeft_token.values())
+    meerdere = cfg.include_alts and len(chars) > 1
 
     if cfg.require_scopes:
+        mist = [c for c in chars if not heeft_token[c.character_id]]
+        klaar = alles_gekoppeld if meerdere else linked
         steps.append({
             "name": "Link character (ESI)",
-            "desc": "Verleen clone-toegang (esi-clones) voor je main.",
-            "auto": True, "done": linked, "sub": [],
-            "note": "" if linked else "clone-toegang nog niet verleend",
-            "url": None if linked else reverse("onboardingchecklist:link_esi"),
+            "desc": ("Verleen clone-toegang (esi-clones) voor al je characters."
+                     if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
+            "auto": True, "done": klaar,
+            "sub": ([_char_sub(c, heeft_token[c.character_id],
+                               "" if heeft_token[c.character_id] else "geen clone-toegang")
+                     for c in chars] if meerdere else []),
+            "note": "" if klaar else (f"{len(mist)} character(s) nog niet gekoppeld"
+                                      if meerdere else "clone-toegang nog niet verleend"),
+            "url": None if klaar else reverse("onboardingchecklist:link_esi"),
             "url_label": "Koppel nu",
         })
 
@@ -98,19 +148,48 @@ def checklist(user):
             })
 
     if cfg.require_home_clone or cfg.require_jump_clones:
-        clones = get_clones(cid) or {}
+        # Eén clones-aanvraag per character (gecached). Zonder token levert dat
+        # meteen niets op, dus dat kost ook geen ESI-verzoek.
+        per_char = {c.character_id: (get_clones(c.character_id) or {}) for c in chars}
+        clones = per_char.get(cid, {})
         home = clones.get("home_location") or {}
         jumps = clones.get("jump_clones") or []
 
         if cfg.require_home_clone:
             stagings = list(cfg.staging_locations.all())
             configured = bool(stagings)
-            home_lid = home.get("location_id")
-            done = configured and any(home_lid == s.location_id for s in stagings)
-            subs = [_loc_sub(s, home_lid == s.location_id) for s in stagings]
+
+            def _thuis(char):
+                """(staat hij goed, op welke staging) voor één character."""
+                lid = ((per_char.get(char.character_id, {}).get("home_location") or {})
+                       .get("location_id"))
+                for s in stagings:
+                    if lid == s.location_id:
+                        return True, s
+                return False, None
+
+            if meerdere:
+                subs, alle_goed = [], configured
+                for char in chars:
+                    goed, staging = _thuis(char)
+                    alle_goed = alle_goed and goed
+                    subs.append(_char_sub(
+                        char, goed,
+                        (staging.name if staging and staging.name else "")
+                        if goed else ("niet op een staging-locatie"
+                                      if heeft_token[char.character_id]
+                                      else "geen clone-toegang"),
+                        staging))
+                done = alle_goed
+            else:
+                home_lid = home.get("location_id")
+                done = configured and any(home_lid == s.location_id for s in stagings)
+                subs = [_loc_sub(s, home_lid == s.location_id) for s in stagings]
             steps.append({
                 "name": "Set death clone to staging",
-                "desc": "Zet je home/death-clone op één van de staging-locaties.",
+                "desc": ("Zet de home/death-clone van elk character op een staging-locatie."
+                         if meerdere
+                         else "Zet je home/death-clone op één van de staging-locaties."),
                 "auto": configured, "done": done,
                 "note": ("" if linked else "clone-toegang nodig — zie de stap hierboven"),
                 "sub": subs,
@@ -120,7 +199,33 @@ def checklist(user):
             count = len(jumps)
             jump_lids = {(j or {}).get("location_id") for j in jumps}
             required = list(cfg.jump_clone_locations.all())
-            if required:
+            nodig = cfg.min_jump_clones or 1
+
+            def _sprongen(char):
+                """(voldoet hij, toelichting) voor één character."""
+                lijst = per_char.get(char.character_id, {}).get("jump_clones") or []
+                lids = {(j or {}).get("location_id") for j in lijst}
+                if not heeft_token[char.character_id]:
+                    return False, "geen clone-toegang"
+                if required:
+                    raak = sum(1 for r in required if r.location_id in lids)
+                    return raak == len(required), f"{raak}/{len(required)} locaties"
+                return len(lijst) >= nodig, f"{len(lijst)} jump clone(s)"
+
+            if meerdere:
+                subs, alle_goed = [], True
+                for char in chars:
+                    goed, uitleg = _sprongen(char)
+                    alle_goed = alle_goed and goed
+                    subs.append(_char_sub(char, goed, uitleg))
+                steps.append({
+                    "name": "Configure jump clone placements",
+                    "desc": ("Zorg dat elk character een jump clone op elke vereiste locatie heeft."
+                             if required
+                             else f"Zorg dat elk character minstens {nodig} jump clone(s) heeft."),
+                    "auto": True, "done": alle_goed, "note": "", "sub": subs,
+                })
+            elif required:
                 subs = [_loc_sub(r, r.location_id in jump_lids) for r in required]
                 steps.append({
                     "name": "Configure jump clone placements",
@@ -131,8 +236,8 @@ def checklist(user):
             else:
                 steps.append({
                     "name": "Configure jump clone placements",
-                    "desc": f"Zorg voor minstens {cfg.min_jump_clones or 1} jump clone(s).",
-                    "auto": True, "done": count >= (cfg.min_jump_clones or 1),
+                    "desc": f"Zorg voor minstens {nodig} jump clone(s).",
+                    "auto": True, "done": count >= nodig,
                     "note": (f"{count} jump clone(s)" if linked else ""), "sub": [],
                 })
 

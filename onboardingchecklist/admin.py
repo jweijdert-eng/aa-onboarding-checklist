@@ -108,6 +108,9 @@ class ConfigAdmin(admin.ModelAdmin):
             "fields": ("require_scopes", "require_discord", "require_teamspeak",
                        "require_home_clone", "require_jump_clones"),
         }),
+        ("Characters", {
+            "fields": ("include_alts",),
+        }),
         ("Jump clones", {
             "fields": ("min_jump_clones",),
         }),
