@@ -150,9 +150,7 @@ def checklist(user):
             "desc": ("Koppel al je characters — main én alts."
                      if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
             "auto": True, "done": klaar,
-            "sub": (_todo([_char_sub(c, heeft_token[c.character_id],
-                                    "" if heeft_token[c.character_id]
-                                    else "geen clone-toegang")
+            "sub": (_todo([_char_sub(c, heeft_token[c.character_id])
                           for c in chars]) if meerdere else []),
             "note": "" if klaar else (f"{len(mist)} character(s) nog niet gekoppeld"
                                       if meerdere else "clone-toegang nog niet verleend"),
