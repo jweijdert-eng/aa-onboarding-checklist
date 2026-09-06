@@ -43,6 +43,32 @@ def _loc_sub(loc, done):
     }
 
 
+def _linkcheck(user):
+    """Wat zegt de Link Check-plugin over dit account? None = plugin er niet.
+
+    Die plugin weet welke koppelingen jullie verplicht stellen (de CharLink-apps
+    uit haar eigen instellingen) en of een token ingetrokken is. Dat is een
+    betere maatstaf dan ons eigen clone-token: die kijkt naar een scope, Link
+    Check naar alles wat jullie eisen. Staat de plugin er niet, dan vallen we
+    terug op de eigen controle.
+    """
+    try:
+        from linkcheck.compliance import account_detail
+        detail = account_detail(user)
+    except Exception:  # noqa: BLE001 — plugin niet geinstalleerd of geen rechten
+        return None
+    if not detail:
+        return None
+    uit = {}
+    for rij in detail.get("characters", []):
+        compleet = rij["n_total"] == 0 or rij["n_linked"] == rij["n_total"]
+        goed = compleet and not rij["revoked"]
+        uit[rij["character_id"]] = (goed, "token ingetrokken" if rij["revoked"]
+                                    else ("" if goed
+                                          else f"{rij['n_linked']}/{rij['n_total']} koppelingen"))
+    return uit
+
+
 def _koppel_url():
     """Waar stuur je iemand heen om te koppelen.
 
@@ -136,6 +162,17 @@ def checklist(user):
     # de database" - een ingetrokken token blijft staan en zou anders groen zijn.
     heeft_rij = {c.character_id: clone_token(c.character_id) is not None for c in chars}
     heeft_token = {c.character_id: token_werkt(c.character_id) for c in chars}
+    # Link Check wint als hij er is; anders ons eigen oordeel over het token.
+    lc = _linkcheck(user)
+    gekoppeld = {}
+    for c in chars:
+        if lc is not None and c.character_id in lc:
+            gekoppeld[c.character_id] = lc[c.character_id]
+        else:
+            gekoppeld[c.character_id] = (
+                heeft_token[c.character_id],
+                "" if heeft_token[c.character_id] or not heeft_rij[c.character_id]
+                else "token ingetrokken of verlopen")
     linked = heeft_token.get(cid, False)
     alles_gekoppeld = all(heeft_token.values())
     meerdere = cfg.include_alts and len(chars) > 1
@@ -145,18 +182,15 @@ def checklist(user):
     jump_alts = meerdere and cfg.alts_jump_clones
 
     if cfg.require_scopes:
-        mist = [c for c in chars if not heeft_token[c.character_id]]
-        klaar = alles_gekoppeld if meerdere else linked
+        mist = [c for c in chars if not gekoppeld[c.character_id][0]]
+        klaar = not mist if meerdere else gekoppeld[cid][0]
         steps.append({
             "name": "Link character check",
             "desc": ("Koppel al je alts."
                      if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
             "auto": True, "done": klaar,
-            "sub": (_todo([_char_sub(c, heeft_token[c.character_id],
-                                    # Staat er wel een token maar doet het niets,
-                                    # dan is dat het enige wat je moet weten.
-                                    "token ingetrokken of verlopen"
-                                    if heeft_rij[c.character_id] else "")
+            "sub": (_todo([_char_sub(c, gekoppeld[c.character_id][0],
+                                    gekoppeld[c.character_id][1])
                           for c in chars]) if meerdere else []),
             "note": "" if klaar else (f"{len(mist)} character(s) nog niet gekoppeld"
                                       if meerdere else "clone-toegang nog niet verleend"),

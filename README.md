@@ -9,8 +9,10 @@ volledig zelfstandig, geen afhankelijkheid van andere plugins.
 
 - **Register main character** — main gekoppeld; de knop wijst naar **CharLink**
   (`charlink:index`) als die geïnstalleerd is, anders naar de eigen SSO-flow
-- **Link character check** — token met `esi-clones.read_clones.v1` dat het nog doet: er wordt een
-  echte vernieuwing gedaan (10 min gecached), zodat een ingetrokken token niet groen blijft
+- **Link character check** — staat er de **Link Check**-plugin (`aa-linkcheck`), dan geldt
+  haar oordeel: alle daar verplicht gestelde CharLink-koppelingen aanwezig en het token niet
+  ingetrokken. Zonder die plugin valt hij terug op een eigen controle: een token met
+  `esi-clones.read_clones.v1` dat nog echt te vernieuwen is (10 min gecached)
 - **Link Discord account** — alleen als de Discord-service actief is
 - **Link TeamSpeak** — alleen als de TeamSpeak3-service actief is
 - **Set death clone to staging** — home/death-clone op één van de ingestelde staging-locaties
@@ -37,7 +39,7 @@ draait alleen op verzoek via de admin-actie **"Ververs locatielijst"** (parallel
 ## Installatie
 
 ```bash
-pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.16.1
+pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.17.0
 ```
 
 ```python
