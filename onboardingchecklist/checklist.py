@@ -43,6 +43,20 @@ def _loc_sub(loc, done):
     }
 
 
+def _koppel_url():
+    """Waar stuur je iemand heen om te koppelen.
+
+    CharLink als die er is: daar koppel je in een keer alle characters en meteen
+    voor alle plugins die scopes vragen - de eigen SSO-flow hier doet er maar
+    een, voor een enkele scope. Reverse in plaats van een vaste URL, zodat het
+    lokaal en op dutchlegions.nl allebei klopt.
+    """
+    try:
+        return reverse("charlink:index")
+    except Exception:  # noqa: BLE001 — CharLink niet geinstalleerd
+        return reverse("onboardingchecklist:link_esi")
+
+
 def _characters(user, cfg):
     """De characters die meetellen: de main, en met 'alts meetellen' aan ook de rest.
 
@@ -64,6 +78,16 @@ def _characters(user, cfg):
         alts = []
     alts.sort(key=lambda c: (c.character_name or "").lower())
     return [main] + alts
+
+
+def _todo(subs):
+    """Alleen wat nog moet: characters die klaar zijn vallen uit de lijst.
+
+    De regels onder een stap zijn een to-do-lijstje. Zeven groene vinkjes onder
+    een stap die zelf al groen is, is alleen maar ruis - wat je wilt zien is de
+    ene alt die nog niet gekoppeld is.
+    """
+    return [x for x in subs if not x["done"]]
 
 
 def _char_sub(char, done, note="", loc=None):
@@ -96,10 +120,12 @@ def checklist(user):
     cfg = Config.load()
 
     main = getattr(getattr(user, "profile", None), "main_character", None)
+    koppelen = _koppel_url()
     steps = [{
         "name": "Register main character",
-        "desc": "Koppel je main EVE-character via SSO.",
+        "desc": "Koppel je main EVE-character.",
         "auto": True, "done": bool(main), "sub": [], "note": "",
+        "url": None if main else koppelen, "url_label": "Koppel via CharLink",
     }]
     if not main:
         return _finish(steps)
@@ -124,13 +150,14 @@ def checklist(user):
             "desc": ("Koppel al je characters — main én alts."
                      if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
             "auto": True, "done": klaar,
-            "sub": ([_char_sub(c, heeft_token[c.character_id],
-                               "" if heeft_token[c.character_id] else "geen clone-toegang")
-                     for c in chars] if meerdere else []),
+            "sub": (_todo([_char_sub(c, heeft_token[c.character_id],
+                                    "" if heeft_token[c.character_id]
+                                    else "geen clone-toegang")
+                          for c in chars]) if meerdere else []),
             "note": "" if klaar else (f"{len(mist)} character(s) nog niet gekoppeld"
                                       if meerdere else "clone-toegang nog niet verleend"),
-            "url": None if klaar else reverse("onboardingchecklist:link_esi"),
-            "url_label": "Koppel nu",
+            "url": None if klaar else koppelen,
+            "url_label": "Koppel via CharLink",
         })
 
     if cfg.require_discord:
@@ -187,6 +214,7 @@ def checklist(user):
                                       if heeft_token[char.character_id]
                                       else "geen clone-toegang"),
                         staging))
+                subs = _todo(subs)
                 done = alle_goed
             else:
                 home_lid = home.get("location_id")
@@ -225,6 +253,7 @@ def checklist(user):
                     goed, uitleg = _sprongen(char)
                     alle_goed = alle_goed and goed
                     subs.append(_char_sub(char, goed, uitleg))
+                subs = _todo(subs)
                 steps.append({
                     "name": "Configure jump clone placements",
                     "desc": ("Zorg dat elk character een jump clone op elke vereiste locatie heeft."
