@@ -7,7 +7,7 @@ Onboarding-checklist — volledig automatische stappen, zelfstandig berekend.
 
 from django.urls import reverse
 
-from .esi import clone_token, get_clones
+from .esi import clone_token, get_clones, token_werkt
 from .models import Config
 
 
@@ -132,8 +132,10 @@ def checklist(user):
 
     cid = main.character_id
     chars = _characters(user, cfg)
-    # Per character of hij clone-toegang heeft. Met alts uit is dit alleen de main.
-    heeft_token = {c.character_id: clone_token(c.character_id) is not None for c in chars}
+    # Per character: is hij goed gekoppeld? Dat is meer dan "er staat een rij in
+    # de database" - een ingetrokken token blijft staan en zou anders groen zijn.
+    heeft_rij = {c.character_id: clone_token(c.character_id) is not None for c in chars}
+    heeft_token = {c.character_id: token_werkt(c.character_id) for c in chars}
     linked = heeft_token.get(cid, False)
     alles_gekoppeld = all(heeft_token.values())
     meerdere = cfg.include_alts and len(chars) > 1
@@ -150,7 +152,11 @@ def checklist(user):
             "desc": ("Koppel al je alts."
                      if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
             "auto": True, "done": klaar,
-            "sub": (_todo([_char_sub(c, heeft_token[c.character_id])
+            "sub": (_todo([_char_sub(c, heeft_token[c.character_id],
+                                    # Staat er wel een token maar doet het niets,
+                                    # dan is dat het enige wat je moet weten.
+                                    "token ingetrokken of verlopen"
+                                    if heeft_rij[c.character_id] else "")
                           for c in chars]) if meerdere else []),
             "note": "" if klaar else (f"{len(mist)} character(s) nog niet gekoppeld"
                                       if meerdere else "clone-toegang nog niet verleend"),
