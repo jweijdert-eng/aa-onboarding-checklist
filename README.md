@@ -17,8 +17,9 @@ volledig zelfstandig, geen afhankelijkheid van andere plugins.
   (of, zonder specifieke locaties, minstens N jump clones)
 
 Met **Alts meetellen** aan (admin, standaard uit) geldt de ESI-stap voor **elk character
-van het account**: onder de stap komt een regel per character, en de stap is pas afgevinkt
-als ze allemaal gekoppeld zijn. De clone-stappen blijven op de main - een alt parkeer je
+van het account**: onder de stap komt een regel voor elk character dat er nog niet is —
+wie klaar is verdwijnt uit de lijst — en de stap is pas afgevinkt als ze allemaal
+gekoppeld zijn. De clone-stappen blijven op de main - een alt parkeer je
 nu eenmaal ergens anders - tenzij je **Death clone ook voor alts** of **Jump clones ook
 voor alts** aanzet. Staat een clone-stap op alts, dan kost dat een clones-aanvraag per
 character (10 minuten gecached).
