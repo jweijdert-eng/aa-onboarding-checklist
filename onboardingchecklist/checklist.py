@@ -121,7 +121,7 @@ def checklist(user):
         klaar = alles_gekoppeld if meerdere else linked
         steps.append({
             "name": "Link character (ESI)",
-            "desc": ("Koppel al je characters — main én alts — met clone-toegang."
+            "desc": ("Koppel al je characters — main én alts."
                      if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
             "auto": True, "done": klaar,
             "sub": ([_char_sub(c, heeft_token[c.character_id],

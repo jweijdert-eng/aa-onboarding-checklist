@@ -34,7 +34,7 @@ draait alleen op verzoek via de admin-actie **"Ververs locatielijst"** (parallel
 ## Installatie
 
 ```bash
-pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.13.0
+pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.13.1
 ```
 
 ```python
