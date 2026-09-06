@@ -125,7 +125,7 @@ def checklist(user):
         "name": "Register main character",
         "desc": "Koppel je main EVE-character.",
         "auto": True, "done": bool(main), "sub": [], "note": "",
-        "url": None if main else koppelen, "url_label": "Koppel via CharLink",
+        "url": koppelen, "url_label": "Koppel via CharLink",
     }]
     if not main:
         return _finish(steps)
@@ -154,8 +154,7 @@ def checklist(user):
                           for c in chars]) if meerdere else []),
             "note": "" if klaar else (f"{len(mist)} character(s) nog niet gekoppeld"
                                       if meerdere else "clone-toegang nog niet verleend"),
-            "url": None if klaar else koppelen,
-            "url_label": "Koppel via CharLink",
+            "url": None, "url_label": "",
         })
 
     if cfg.require_discord:
