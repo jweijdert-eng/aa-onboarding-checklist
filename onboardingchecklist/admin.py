@@ -109,7 +109,7 @@ class ConfigAdmin(admin.ModelAdmin):
                        "require_home_clone", "require_jump_clones"),
         }),
         ("Characters", {
-            "fields": ("include_alts",),
+            "fields": ("include_alts", "alts_home_clone", "alts_jump_clones"),
         }),
         ("Jump clones", {
             "fields": ("min_jump_clones",),

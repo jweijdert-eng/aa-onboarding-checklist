@@ -15,10 +15,12 @@ volledig zelfstandig, geen afhankelijkheid van andere plugins.
 - **Configure jump clone placements** — een jump clone op elke vereiste locatie
   (of, zonder specifieke locaties, minstens N jump clones)
 
-Met **Alts meetellen** aan (admin, standaard uit) gelden de ESI- en clone-stappen voor
-**elk character van het account**, niet alleen de main: onder de stap komt een regel per
-character met zijn eigen status, en de stap is pas afgevinkt als ze allemaal voldoen.
-Per character is dat een clones-aanvraag (10 minuten gecached).
+Met **Alts meetellen** aan (admin, standaard uit) geldt de ESI-stap voor **elk character
+van het account**: onder de stap komt een regel per character, en de stap is pas afgevinkt
+als ze allemaal gekoppeld zijn. De clone-stappen blijven op de main - een alt parkeer je
+nu eenmaal ergens anders - tenzij je **Death clone ook voor alts** of **Jump clones ook
+voor alts** aanzet. Staat een clone-stap op alts, dan kost dat een clones-aanvraag per
+character (10 minuten gecached).
 
 Staging- en jump-clone-locaties beheer je in de admin: kies uit een dropdown van
 locaties waar leden clones hebben, of beheer een eigen locatie-lijst. Per regel kun je
@@ -32,7 +34,7 @@ draait alleen op verzoek via de admin-actie **"Ververs locatielijst"** (parallel
 ## Installatie
 
 ```bash
-pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.12.0
+pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.13.0
 ```
 
 ```python

@@ -111,13 +111,17 @@ def checklist(user):
     linked = heeft_token.get(cid, False)
     alles_gekoppeld = all(heeft_token.values())
     meerdere = cfg.include_alts and len(chars) > 1
+    # Per stap: gaat het over alle characters of alleen over de main? Een alt
+    # parkeer je ergens anders, dus de clone-stappen staan standaard op de main.
+    home_alts = meerdere and cfg.alts_home_clone
+    jump_alts = meerdere and cfg.alts_jump_clones
 
     if cfg.require_scopes:
         mist = [c for c in chars if not heeft_token[c.character_id]]
         klaar = alles_gekoppeld if meerdere else linked
         steps.append({
             "name": "Link character (ESI)",
-            "desc": ("Verleen clone-toegang (esi-clones) voor al je characters."
+            "desc": ("Koppel al je characters — main én alts — met clone-toegang."
                      if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
             "auto": True, "done": klaar,
             "sub": ([_char_sub(c, heeft_token[c.character_id],
@@ -149,8 +153,11 @@ def checklist(user):
 
     if cfg.require_home_clone or cfg.require_jump_clones:
         # Eén clones-aanvraag per character (gecached). Zonder token levert dat
-        # meteen niets op, dus dat kost ook geen ESI-verzoek.
-        per_char = {c.character_id: (get_clones(c.character_id) or {}) for c in chars}
+        # meteen niets op, dus dat kost ook geen ESI-verzoek. Staan beide
+        # clone-stappen op de main, dan halen we ook alleen die op - anders
+        # betaal je ESI-verzoeken voor antwoorden die niemand bekijkt.
+        te_halen = chars if (home_alts or jump_alts) else [main]
+        per_char = {c.character_id: (get_clones(c.character_id) or {}) for c in te_halen}
         clones = per_char.get(cid, {})
         home = clones.get("home_location") or {}
         jumps = clones.get("jump_clones") or []
@@ -168,7 +175,7 @@ def checklist(user):
                         return True, s
                 return False, None
 
-            if meerdere:
+            if home_alts:
                 subs, alle_goed = [], configured
                 for char in chars:
                     goed, staging = _thuis(char)
@@ -188,7 +195,7 @@ def checklist(user):
             steps.append({
                 "name": "Set death clone to staging",
                 "desc": ("Zet de home/death-clone van elk character op een staging-locatie."
-                         if meerdere
+                         if home_alts
                          else "Zet je home/death-clone op één van de staging-locaties."),
                 "auto": configured, "done": done,
                 "note": ("" if linked else "clone-toegang nodig — zie de stap hierboven"),
@@ -212,7 +219,7 @@ def checklist(user):
                     return raak == len(required), f"{raak}/{len(required)} locaties"
                 return len(lijst) >= nodig, f"{len(lijst)} jump clone(s)"
 
-            if meerdere:
+            if jump_alts:
                 subs, alle_goed = [], True
                 for char in chars:
                     goed, uitleg = _sprongen(char)
