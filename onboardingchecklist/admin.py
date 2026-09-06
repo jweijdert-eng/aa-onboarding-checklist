@@ -105,8 +105,8 @@ class ConfigAdmin(admin.ModelAdmin):
             "fields": ("hide_when_complete",),
         }),
         ("Actieve stappen", {
-            "fields": ("require_scopes", "require_discord", "require_teamspeak",
-                       "require_home_clone", "require_jump_clones"),
+            "fields": ("require_scopes", "require_linkcheck", "require_discord",
+                       "require_teamspeak", "require_home_clone", "require_jump_clones"),
         }),
         ("Jump clones", {
             "fields": ("min_jump_clones",),

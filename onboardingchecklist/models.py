@@ -31,6 +31,13 @@ class Config(models.Model):
         default=True, verbose_name=_("Stap: TeamSpeak koppelen"),
         help_text=_("Alleen zichtbaar als de TeamSpeak3-service is geïnstalleerd."),
     )
+    require_linkcheck = models.BooleanField(
+        default=False, verbose_name=_("Stap: Link Character Check"),
+        help_text=_("Extra stap die de Link Check-plugin (aa-linkcheck) bevraagt: staan alle "
+                    "daar verplicht gestelde koppelingen, en is er geen ingetrokken token? "
+                    "Onder de stap komt een regel voor elk character dat er nog niet is. "
+                    "Doet niets als die plugin niet geïnstalleerd is."),
+    )
     require_home_clone = models.BooleanField(
         default=True, verbose_name=_("Stap: home/death-clone op staging"),
     )

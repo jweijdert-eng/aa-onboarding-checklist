@@ -43,6 +43,29 @@ def _loc_sub(loc, done):
     }
 
 
+def _linkcheck(user):
+    """Wat zegt de Link Check-plugin over dit account? None = plugin er niet.
+
+    Die plugin weet welke CharLink-koppelingen jullie verplicht stellen en of een
+    token ingetrokken is. Per character: (is het goed, wat mist er).
+    """
+    try:
+        from linkcheck.compliance import account_detail
+        detail = account_detail(user)
+    except Exception:  # noqa: BLE001 — plugin niet geinstalleerd of geen rechten
+        return None
+    if not detail:
+        return None
+    uit = {}
+    for rij in detail.get("characters", []):
+        compleet = rij["n_total"] == 0 or rij["n_linked"] == rij["n_total"]
+        goed = compleet and not rij["revoked"]
+        uit[rij["name"]] = (goed, "token ingetrokken" if rij["revoked"]
+                            else ("" if goed
+                                  else f"{rij['n_linked']}/{rij['n_total']} koppelingen"))
+    return uit
+
+
 def _koppel_url():
     """Waar stuur je iemand heen om te koppelen.
 
@@ -95,6 +118,23 @@ def checklist(user):
             "url": None if linked else reverse("onboardingchecklist:link_esi"),
             "url_label": "Koppel nu",
         })
+
+    if cfg.require_linkcheck:
+        stand = _linkcheck(user)
+        if stand is not None:
+            # Alleen wie er nog niet is: de regels zijn een to-do-lijstje, en wie
+            # klaar is hoeft er niet bij te staan.
+            mist = [{"name": naam, "done": False, "note": uitleg, "icon_url": "",
+                     "icon_text": "", "icon_size": 26}
+                    for naam, (goed, uitleg) in sorted(stand.items()) if not goed]
+            steps.append({
+                "name": "Link Character Check",
+                "desc": "Al je characters gekoppeld zoals de corp het vraagt.",
+                "auto": True, "done": not mist, "sub": mist,
+                "note": "" if not mist else f"{len(mist)} character(s) niet compleet",
+                "url": None if not mist else _koppel_url(),
+                "url_label": "Koppel via CharLink",
+            })
 
     if cfg.require_discord:
         linked = _discord_linked(user)
