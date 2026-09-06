@@ -43,6 +43,20 @@ def _loc_sub(loc, done):
     }
 
 
+def _koppel_url():
+    """Waar stuur je iemand heen om te koppelen.
+
+    CharLink als die er is: daar koppel je in een keer al je characters en meteen
+    voor alle plugins die scopes vragen. Reverse in plaats van een vaste URL,
+    zodat het lokaal en op dutchlegions.nl allebei klopt; zonder CharLink de
+    eigen SSO-flow.
+    """
+    try:
+        return reverse("charlink:index")
+    except Exception:  # noqa: BLE001 — CharLink niet geinstalleerd
+        return reverse("onboardingchecklist:link_esi")
+
+
 def _finish(steps):
     total = len(steps)
     done = sum(1 for s in steps if s["done"])
@@ -62,6 +76,9 @@ def checklist(user):
         "name": "Register main character",
         "desc": "Koppel je main EVE-character via SSO.",
         "auto": True, "done": bool(main), "sub": [], "note": "",
+        # De knop blijft staan als je main er al is: je alts koppel je op
+        # dezelfde plek.
+        "url": _koppel_url(), "url_label": "Koppel via CharLink",
     }]
     if not main:
         return _finish(steps)

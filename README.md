@@ -7,7 +7,8 @@ volledig zelfstandig, geen afhankelijkheid van andere plugins.
 
 ## Stappen (elke stap aan/uit te zetten in de admin)
 
-- **Register main character** — main via SSO gekoppeld
+- **Register main character** — main via SSO gekoppeld; de knop wijst naar **CharLink**
+  (`charlink:index`) als die geïnstalleerd is, anders naar de eigen SSO-flow
 - **Link character (ESI)** — token met `esi-clones.read_clones.v1` aanwezig
 - **Link Discord account** — alleen als de Discord-service actief is
 - **Link TeamSpeak** — alleen als de TeamSpeak3-service actief is
@@ -27,7 +28,7 @@ draait alleen op verzoek via de admin-actie **"Ververs locatielijst"** (parallel
 ## Installatie
 
 ```bash
-pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.11.1
+pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.18.0
 ```
 
 ```python
