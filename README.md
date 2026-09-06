@@ -7,25 +7,13 @@ volledig zelfstandig, geen afhankelijkheid van andere plugins.
 
 ## Stappen (elke stap aan/uit te zetten in de admin)
 
-- **Register main character** — main gekoppeld; de knop wijst naar **CharLink**
-  (`charlink:index`) als die geïnstalleerd is, anders naar de eigen SSO-flow
-- **Link character check** — staat er de **Link Check**-plugin (`aa-linkcheck`), dan geldt
-  haar oordeel: alle daar verplicht gestelde CharLink-koppelingen aanwezig en het token niet
-  ingetrokken. Zonder die plugin valt hij terug op een eigen controle: een token met
-  `esi-clones.read_clones.v1` dat nog echt te vernieuwen is (10 min gecached)
+- **Register main character** — main via SSO gekoppeld
+- **Link character (ESI)** — token met `esi-clones.read_clones.v1` aanwezig
 - **Link Discord account** — alleen als de Discord-service actief is
 - **Link TeamSpeak** — alleen als de TeamSpeak3-service actief is
 - **Set death clone to staging** — home/death-clone op één van de ingestelde staging-locaties
 - **Configure jump clone placements** — een jump clone op elke vereiste locatie
   (of, zonder specifieke locaties, minstens N jump clones)
-
-Met **Alts meetellen** aan (admin, standaard uit) geldt de ESI-stap voor **elk character
-van het account**: onder de stap komt een regel voor elk character dat er nog niet is —
-wie klaar is verdwijnt uit de lijst — en de stap is pas afgevinkt als ze allemaal
-gekoppeld zijn. De clone-stappen blijven op de main - een alt parkeer je
-nu eenmaal ergens anders - tenzij je **Death clone ook voor alts** of **Jump clones ook
-voor alts** aanzet. Staat een clone-stap op alts, dan kost dat een clones-aanvraag per
-character (10 minuten gecached).
 
 Staging- en jump-clone-locaties beheer je in de admin: kies uit een dropdown van
 locaties waar leden clones hebben, of beheer een eigen locatie-lijst. Per regel kun je
@@ -39,7 +27,7 @@ draait alleen op verzoek via de admin-actie **"Ververs locatielijst"** (parallel
 ## Installatie
 
 ```bash
-pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.17.0
+pip install git+https://github.com/jweijdert-eng/aa-onboarding-checklist.git@v1.11.1
 ```
 
 ```python

@@ -38,26 +38,6 @@ class Config(models.Model):
         default=True, verbose_name=_("Stap: jump clones aanwezig"),
     )
 
-    include_alts = models.BooleanField(
-        default=False, verbose_name=_("Alts meetellen"),
-        help_text=_("Uit (standaard): alleen de main telt. Aan: elk character van het account "
-                    "moet aan de ESI- en clone-stappen voldoen; per character komt er een regel "
-                    "onder de stap te staan."),
-    )
-
-    alts_home_clone = models.BooleanField(
-        default=False, verbose_name=_("Death clone ook voor alts"),
-        help_text=_("Uit (standaard): alleen de main hoeft zijn death clone op een "
-                    "staging-locatie te hebben, ook als alts meetellen — een alt parkeer je "
-                    "nu eenmaal ergens anders. Aan: elk character."),
-    )
-
-    alts_jump_clones = models.BooleanField(
-        default=False, verbose_name=_("Jump clones ook voor alts"),
-        help_text=_("Uit (standaard): alleen de main. Aan: elk character moet aan de "
-                    "jump-clone-eis voldoen."),
-    )
-
     hide_when_complete = models.BooleanField(
         default=False, verbose_name=_("Widget verbergen bij 100% voltooid"),
         help_text=_("Uit (standaard): de checklist blijft altijd zichtbaar, met een "

@@ -25,30 +25,6 @@ def clone_token(character_id):
         return None
 
 
-def token_werkt(character_id):
-    """Is dit character écht gekoppeld, of staat er alleen een dood token?
-
-    Een token dat je in-game intrekt blijft gewoon in de database staan; je merkt
-    het pas als je het probeert te vernieuwen. Daarom niet op het bestaan van de
-    rij afgaan maar op een echte vernieuwing - gecached, want dit is een aanvraag
-    bij EVE SSO.
-    """
-    key = f"obc_tokenok_{character_id}"
-    cached = cache.get(key)
-    if cached is not None:
-        return cached
-
-    token = clone_token(character_id)
-    ok = False
-    if token:
-        try:
-            ok = bool(token.valid_access_token())
-        except Exception as e:  # noqa: BLE001 — ingetrokken, verlopen, SSO plat
-            logger.info("Onboarding: token van %s werkt niet: %s", character_id, e)
-    cache.set(key, ok, _CACHE_SECONDS)
-    return ok
-
-
 def get_clones(character_id):
     """Clones-endpoint voor een character (gecached). None = geen token/fout."""
     key = f"obc_clones_{character_id}"
