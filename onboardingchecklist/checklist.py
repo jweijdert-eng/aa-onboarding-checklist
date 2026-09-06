@@ -66,6 +66,16 @@ def _linkcheck(user):
     return uit
 
 
+def _linkcheck_url():
+    """De Link Check-pagina zelf: daar staat de kruistabel met wat er per
+    character mist. Zonder die plugin terugvallen op CharLink, want dan is
+    koppelen het enige wat je nog kunt doen."""
+    try:
+        return reverse("linkcheck:index")
+    except Exception:  # noqa: BLE001 — plugin niet geinstalleerd
+        return _koppel_url()
+
+
 def _koppel_url():
     """Waar stuur je iemand heen om te koppelen.
 
@@ -132,8 +142,8 @@ def checklist(user):
                 "desc": "Al je characters gekoppeld zoals de corp het vraagt.",
                 "auto": True, "done": not mist, "sub": mist,
                 "note": "" if not mist else f"{len(mist)} character(s) niet compleet",
-                "url": None if not mist else _koppel_url(),
-                "url_label": "Koppel via CharLink",
+                "url": None if not mist else _linkcheck_url(),
+                "url_label": "Bekijk in Link Check",
             })
 
     if cfg.require_discord:
