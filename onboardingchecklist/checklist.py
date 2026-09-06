@@ -148,7 +148,7 @@ def checklist(user):
         mist = [c for c in chars if not heeft_token[c.character_id]]
         klaar = alles_gekoppeld if meerdere else linked
         steps.append({
-            "name": "Link Check",
+            "name": "Link character check",
             "desc": ("Koppel al je alts."
                      if meerdere else "Verleen clone-toegang (esi-clones) voor je main."),
             "auto": True, "done": klaar,
